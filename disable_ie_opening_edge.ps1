@@ -22,6 +22,8 @@ By default you may not be able to run any powershell scripts unless you change W
 
 See tutorial on changing execution policy here: https://www.tenforums.com/tutorials/54585-change-powershell-script-execution-policy-windows-10-a.html
 
+From: https://github.com/ThioJoe/youtube-dl-easy#powershell-execution-policy
+
 ######################################################################################################################################>
 
 
