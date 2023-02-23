@@ -7,7 +7,8 @@ This script renames the files related to Microsoft Edge's Internet Explorer Brow
 used to open Edge when Internet Explorer tries to open.
 This lets a user run legacy websites in Internet Explorer that may not work in IE Mode on Edge.
 
-This also includes edits to the Group Policy that may or may not fix the issue, and has not been tested.
+This also includes a way to add changes to the Group Policy that can disable the redirect add-on, 
+however it has not been tested, and may or may not work.
 
 This is provided as-is as Microsoft may break this workaround, and the script may cause issues with your device.
 
@@ -71,7 +72,7 @@ function menu()
     Write-Host ".)"
 
     Write-Host ""
-    Write-Host "The Group Policy Edits have not been tested, may or may not work." -ForegroundColor Magenta
+    Write-Host "Group Policy edits have not been tested, may or may not work. Execute at your own risk." -ForegroundColor Magenta
 
     Write-Host "Press g to" -NoNewline
     Write-Host " enable " -NoNewLine -ForegroundColor Red
