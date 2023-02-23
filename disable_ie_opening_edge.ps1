@@ -87,7 +87,7 @@ function menu()
         "r"
         {
             ""
-            removeBHO
+            deleteBHO
             ""
         }
         "e"
@@ -207,9 +207,9 @@ function enableBHO()
         }
 }
 
-function removeBHO()
+function deleteBHO()
 {
-    # Checks to see if files have been renamed already, if so, exit the script, if not, continues to
+    # Checks to see if files have been deleted already, if so, exit the script, if not, continues to
     # rename all files.
     
     $FilestoDelete = findfiles
