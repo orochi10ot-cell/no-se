@@ -139,7 +139,7 @@ function disableBHO()
         else
         {
             "This portion of the script will rename these files, adding the "".bak"" extension to the end of the file."
-            $FilestoRename | %{$_.FullName + " -> " + ($PSItem.Name + ".bak")}                                              
+            $FilestoRename | %{$PSItem.Name + " -> " + ($PSItem.Name + ".bak")}                                              
             #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
             ""
             if (agree("Press y to continue renaming, press any other key to exit"))
@@ -182,7 +182,7 @@ function enableBHO()
         else
         {
             "This portion of the script will rename these files, removing the "".bak"" extension at the end of the file."
-            $FilestoRename | %{$_.FullName + " -> " + ($_.name.substring(0,$_.name.length-4))}                                              
+            $FilestoRename | %{$PSItem.Name + " -> " + ($_.name.substring(0,$_.name.length-4))}                                              
             #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
             ""
             if (agree("Press y to continue renaming, press any other key to exit"))
@@ -229,7 +229,7 @@ function deleteBHO()
                 if(agree("Are you sure? You cannot revert this. Press y again to confirm, press any other key to exit."))
                 {
                 "Deleting files."
-                $FilestoDelete | Rename-Item -newname {($PSItem.Name +".del")}   #temporary so it won't be deleted
+                $FilestoDelete | Remove-Item
                 "Deleting all files, exiting to menu."
                 menu
                 }
