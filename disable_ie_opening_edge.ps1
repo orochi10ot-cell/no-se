@@ -68,7 +68,7 @@ function menu()
     Write-Host "the IEtoEdge BHO, enabling Edge redirection."
 
     Write-Host "Press d to" -NoNewline
-    Write-Host " delete " -NoNewLine -ForegroundColor Green
+    Write-Host " delete " -NoNewLine -ForegroundColor Red
     Write-Host "the IEtoEdge BHO files (Note: Once files are deleted, " -NoNewline
     Write-Host "changes cannot be reverted." -NoNewline -ForegroundColor Red
     Write-Host ".)"
@@ -413,6 +413,7 @@ switch ((Read-Host -Prompt "Press y to agree to terms, or type any other charact
     default
     {
         "Terms not agreed to, exiting."
+        pause
         exit
     }
 }
