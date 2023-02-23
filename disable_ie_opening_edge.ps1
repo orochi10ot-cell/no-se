@@ -83,8 +83,8 @@ function menu()
     Write-Host "Edge redirection."
 
     Write-Host "Press i to" -NoNewline
-    Write-Host " enabling " -NoNewLine -ForegroundColor Green
-    Write-Host "Group Policies that should disable IEtoEdge BHO,"
+    Write-Host " disable " -NoNewLine -ForegroundColor Green
+    Write-Host "Group Policies that should enable IEtoEdge BHO,"
     Write-Host "enabling " -NoNewLine -ForegroundColor Green
     Write-Host "Edge redirection."
 
