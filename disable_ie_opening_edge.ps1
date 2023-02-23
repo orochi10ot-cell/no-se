@@ -6,6 +6,9 @@ February 22, 2023
 This script renames the files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO)
 used to open Edge when Internet Explorer tries to open.
 This lets a user run legacy websites in Internet Explorer that may not work in IE Mode on Edge.
+
+This also includes edits to the Group Policy that may or may not fix the issue, and has not been tested.
+
 This is provided as-is as Microsoft may break this workaround, and the script may cause issues with your device.
 #>
 
@@ -32,6 +35,11 @@ if ((Test-Admin) -eq $false)  {
 
 function menu()
 {
+    
+    if ($EdgeFolder -eq $null)
+    {
+        exit
+    }
 
     Write-Host ""
     Write-Host "What would you like to do?" 
@@ -168,12 +176,6 @@ function getDirectory()
             }
 }
 
-
-
-if ($EdgeFolder -eq $null)
-{
-    exit
-}
 
 # Gets all files starting with the name "ie_to_edge", going through all folders in %ProgramFiles%\Microsoft\ or
 # %ProgramFiles(x86)%\Microsoft\ on 64-bit operating systems.
@@ -381,8 +383,8 @@ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTIO
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
 ""
 Write-Host "This script will rename any files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO),
-either or enabling disabling Internet Explorer redirects to Edge, 
-allowing a user to use Internet Explorer for certain websites."
+either or enabling disabling Internet Explorer redirects to Edge, allowing a user to use Internet Explorer for websites
+that may not function in Internet Explorer mode for Edge."
 ""
 # Have users agree to terms before starting program, or exits otherwise.
 
