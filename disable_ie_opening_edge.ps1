@@ -27,6 +27,259 @@ if ((Test-Admin) -eq $false)  {
 }
 
 ""
+function getDirectory()
+{
+    # Checks to see where the "Edge" folder exists on the system, either in the "Program Files" folder,
+    # or the "Program Files (x86)" folder, then sets "EdgeFolder" to the parent directory.
+    ""
+    $x64Folder = ${Env:ProgramFiles(x86)} + '\Microsoft\Edge'
+    $x86Folder = ${Env:ProgramFiles} + '\Microsoft\Edge'
+    $global:EdgeFolder = $null
+
+    if (Test-Path -Path $x86Folder) 
+    {
+        $global:EdgeFolder = ${Env:ProgramFiles} + '\Microsoft\'
+        "x86 Path does exist, continuing. (" + $EdgeFolder + ")"
+        $gotDirectory = "true"
+
+    } 
+        elseif (Test-Path -Path $x64Folder)
+        {
+            $global:EdgeFolder = ${Env:ProgramFiles(x86)} + '\Microsoft\'
+            "x64 Path does exist, continuing. (" + $EdgeFolder + ")"
+            $gotDirectory = "true"
+        }
+            else
+            {
+                "Error finding Microsoft Edge directory. Please contact the developer."
+                pause
+                exit
+            }
+}
+
+# Creates a menu for the user to select the option they would like to use.
+
+$menumessage = " `
+What would you like to do? `
+Press f to disable the BHO, turning off Edge redirection. `
+Prees o to enable the BHO, enabling Edge redirection. `
+Press r to remove any BHO files. (Note: Once files are removed, changes cannot be reverted.) `
+Press e to exit. `
+Enter here"
+
+function menu()
+{
+
+    switch ((Read-Host -Prompt $menumessage).Substring(0,1))
+    {
+        "f" 
+        {
+            ""
+            disableBHO
+            ""
+        }
+        "o"
+        {
+            ""
+            enableBHO
+            ""
+        }
+        "r"
+        {
+            ""
+            removeBHO
+            ""
+        }
+        "e"
+        {
+            ""
+            "Exiting the program."
+            exit
+            $gotDirectory = "false"
+            pause
+        }
+        default
+        {
+            "Incorrect letter entered, returning to menu."
+            menu
+        }
+   }
+
+}
+
+if ($EdgeFolder -eq "null")
+{
+    exit
+}
+
+# Gets all files starting with the name "ie_to_edge", going through all folders in %ProgramFiles%\Microsoft\ or
+# %ProgramFiles(x86)%\Microsoft\ on 64-bit operating systems.
+
+function findFiles()
+{
+    return dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse 
+}
+
+
+function disableBHO()
+{
+    # Checks to see if files have been renamed already, if so, exit to menu, if not, continues to
+    # rename all files.
+    
+    $FilestoRename = findfiles
+    $filenameextensions = $FilestoRename | %{$_.name.substring($_.name.length -3)}
+    $matchpattern = "bak"
+    $matchingValues = $filenameextensions | Where { "$filenameextensions.GetValue($_)" -match $matchPattern }
+    if($filenameextensions.Count -eq $matchingValues.Count -and $filenameextensions.Count -eq 0)
+    {
+        "It looks like you have run this before or all files have been deleted, the script will not continue. `nGoing back to menu..."
+        pause
+        menu
+    }
+        else
+        {
+            "This portion of the script will rename these files, adding the "".bak"" extension to the end of the file."
+            $FilestoRename | %{$_.FullName + " -> " + ($PSItem.Name + ".bak")}                                              
+            #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
+            ""
+            if (agree("Press y to continue renaming, press any other key to exit"))
+            {
+                "Renaming files."
+                $FilestoRename | Rename-Item -newname {($PSItem.Name +".bak")}
+                "Renamed all files, exiting to menu."
+                pause
+                menu
+            }
+            else
+            {
+                "Exiting..."
+                pause
+                menu
+            }
+    
+            #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
+            #$FilestoRename | %{$_.FullName}                                               # outputs new file names
+            #pause
+            break
+        }
+}
+
+function enableBHO()
+{
+    # Checks to see if files have been renamed already, if so, exit to menu, if not, continues to
+    # rename all files.
+    
+    $FilestoRename = findfiles
+    $filenameextensions = $FilestoRename | %{$_.name.substring($_.name.length -3)}
+    $matchpattern = "bak"
+    $matchingValues = $filenameextensions | Where { "$filenameextensions.GetValue($_)" -match $matchPattern }
+    if($filenameextensions.Count -ne $matchingValues.Count -or $FilestoRename.Count -eq 0)
+    {
+        "It looks like you have run this before or all files have been deleted, the script will not continue. `nGoing back to menu..."
+        pause
+        menu
+    }
+        else
+        {
+            "This portion of the script will rename these files, removing the "".bak"" extension at the end of the file."
+            $FilestoRename | %{$_.FullName + " -> " + ($_.name.substring(0,$_.name.length-4))}                                              
+            #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
+            ""
+            if (agree("Press y to continue renaming, press any other key to exit"))
+            {
+                "Renaming files."
+                $FilestoRename | Rename-Item -newname {$_.name.substring(0,$_.name.length-4)}
+                "Renamed all files, exiting to menu."
+                pause
+                menu
+            }
+            else
+            {
+                "Exiting..."
+                pause
+                menu
+            }
+    
+            #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
+            #$FilestoRename | %{$_.FullName}                                               # outputs new file names
+            #pause
+            break
+        }
+}
+
+function removeBHO()
+{
+    # Checks to see if files have been renamed already, if so, exit the script, if not, continues to
+    # rename all files.
+    
+    $FilestoDelete = findfiles
+    if($FilestoDelete.Count -eq 0)
+    {
+        "There are no BHO related files. Going back to menu..."
+        pause
+        menu
+    }
+        else
+        {
+            "This portion of the script will delete these files. There's no going back."
+            $FilestoDelete | %{$_.FullName}                                          
+            #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
+            ""
+            if (agree("Press y to continue deletion, press any other key to exit"))
+            {
+                if(agree("Are you sure? You cannot revert this. Press y again to confirm, press any other key to exit."))
+                {
+                "Deleting files."
+                $FilestoDelete | Rename-Item -newname {($PSItem.Name +".del")}   #temporary so it won't be deleted
+                "Deleting all files, exiting to menu."
+                menu
+                }
+                else
+                {
+                    "Exiting..."
+                    pause
+                    menu
+                }
+            }
+            else
+            {
+                "Exiting..."
+                pause
+                menu
+            }
+    
+            #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
+            #$FilestoRename | %{$_.FullName}                                               # outputs new file names
+            #pause
+            break
+        }
+}
+
+
+function agree($agreemessage)
+{
+    try
+    {
+        switch ((Read-Host -Prompt $agreemessage).Substring(0,1))
+        {
+            "y"
+         {
+                return $true
+         }
+            default
+            {
+                return $false
+            }
+        }
+    }
+    catch
+    {
+        return $false
+    }
+}
+
+
+""
 "Disabling Edge from Opening when Internet Explorer tries to Open"
 "by hihi217"
 ""
@@ -38,71 +291,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 "This script will rename any files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO), disabling Internet Explorer
 redirects to Edge, allowing a user to use Internet Explorer for certain websites."
 ""
-Read-Host -Prompt "Press enter key to continue, and to agree to the above or CTRL+C to quit"
-""
+# Have users agree to terms before starting program, or exits otherwise.
 
-# Checks to see where the "Edge" folder exists on the system, either in the "Program Files" folder,
-# or the "Program Files (x86)" folder, then sets "EdgeFolder" to the parent directory.
-
-$x64Folder = ${Env:ProgramFiles(x86)} + '\Microsoft\Edge'
-$x86Folder = ${Env:ProgramFiles} + '\Microsoft\Edge'
-$EdgeFolder = "null"
-
-if (Test-Path -Path $x86Folder) 
+switch ((Read-Host -Prompt "Press y to agree to terms, or type any other character to exit").Substring(0,1))
 {
-    #"x86 Path does exist."
-    $EdgeFolder = ${Env:ProgramFiles} + '\Microsoft\'
-
-} 
-    elseif (Test-Path -Path $x64Folder)
+    "y"
     {
-        #"x64 Path does exist."
-        $EdgeFolder = ${Env:ProgramFiles(x86)} + '\Microsoft\'
+        getDirectory
+        menu
     }
-        else
-        {
-            "Error selecting path. Please contact the developer."
-            pause
-            exit
-        }
-
-
-#"$EdgeFolder" # writes folder path to console
-
-if ($EdgeFolder -eq "null")
-{
-    exit
-}
-
-# Gets all files named "ie_to_edge", going through all folders in %ProgramFiles%\Microsoft\ or
-# %ProgramFiles(x86)\Microsoft\ on 64-bit operating systems.
-
-$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse 
-
-
-# Checks to see if files have been renamed already, if so, exit the script, if not, continues to
-# rename all files.
-
-$filenameextensions = $FilestoRename | %{$_.name.substring($_.name.length -3)}
-$matchpattern = "bak"
-$matchingValues = $filenameextensions | Where { "$filenameextensions.GetValue($_)" -match $matchPattern }
-
-if($filenameextensions.Count -eq $matchingValues.Count)
-{
-    "It looks like you have run this before, exiting."
-    #$FilestoRename | Rename-Item -newname {$_.name.substring(0,$_.name.length-4)} # removes .bak extension 
-    pause
-    exit
-}
-    else
+    default
     {
-        #$FilestoRename | %{$_.FullName}                                               # outputs old file names
-        "Renaming all files."
-        $FilestoRename | Rename-Item -newname {($PSItem.Name +".bak")}
-    
-        #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
-        #$FilestoRename | %{$_.FullName}                                               # outputs new file names
-        "Renamed all files, exiting."
-        pause
+        "Terms not agreed to, exiting."
         exit
     }
+}
