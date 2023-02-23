@@ -10,7 +10,19 @@ This lets a user run legacy websites in Internet Explorer that may not work in I
 This also includes edits to the Group Policy that may or may not fix the issue, and has not been tested.
 
 This is provided as-is as Microsoft may break this workaround, and the script may cause issues with your device.
+
 #>
+
+
+<###################################################################################################################################### 
+
+Powershell Execution Policy
+By default you may not be able to run any powershell scripts unless you change Windows' execution policy. Try setting to "RemoteSigned".
+
+See tutorial on changing execution policy here: https://www.tenforums.com/tutorials/54585-change-powershell-script-execution-policy-windows-10-a.html
+
+######################################################################################################################################>
+
 
 # UAC Elevation: https://superuser.com/a/532109
 param([switch]$Elevated)
