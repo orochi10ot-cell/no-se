@@ -61,8 +61,8 @@ function getDirectory()
 
 $menumessage = " `
 What would you like to do? `
-Press f to disable the BHO, turning off Edge redirection. `
-Prees o to enable the BHO, enabling Edge redirection. `
+Press f to disable the IEtoEdge BHO, turning off Edge redirection. `
+Prees o to enable the IEtoEdge BHO, enabling Edge redirection. `
 Press r to remove any BHO files. (Note: Once files are removed, changes cannot be reverted.) `
 Press e to exit. `
 Enter here"
@@ -159,8 +159,8 @@ function disableBHO()
     
             #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
             #$FilestoRename | %{$_.FullName}                                               # outputs new file names
-            #pause
-            break
+            pause
+            menu
         }
 }
 
@@ -202,8 +202,8 @@ function enableBHO()
     
             #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
             #$FilestoRename | %{$_.FullName}                                               # outputs new file names
-            #pause
-            break
+            pause
+            menu
         }
 }
 
@@ -223,7 +223,6 @@ function removeBHO()
         {
             "This portion of the script will delete these files. There's no going back."
             $FilestoDelete | %{$_.FullName}                                          
-            #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
             ""
             if (agree("Press y to continue deletion, press any other key to exit"))
             {
@@ -247,10 +246,6 @@ function removeBHO()
                 pause
                 menu
             }
-    
-            #$FilestoRename = dir -Path $EdgeFolder -Filter ie_to_edge* -Recurse           # gets new filenames
-            #$FilestoRename | %{$_.FullName}                                               # outputs new file names
-            #pause
             break
         }
 }
@@ -288,8 +283,9 @@ WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEM
 HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
 ""
-"This script will rename any files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO), disabling Internet Explorer
-redirects to Edge, allowing a user to use Internet Explorer for certain websites."
+"This script will rename any files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO),
+either or enabling disabling Internet Explorer redirects to Edge, 
+allowing a user to use Internet Explorer for certain websites."
 ""
 # Have users agree to terms before starting program, or exits otherwise.
 
