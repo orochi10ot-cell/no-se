@@ -27,50 +27,48 @@ if ((Test-Admin) -eq $false)  {
 }
 
 ""
-function getDirectory()
-{
-    # Checks to see where the "Edge" folder exists on the system, either in the "Program Files" folder,
-    # or the "Program Files (x86)" folder, then sets "EdgeFolder" to the parent directory.
-    ""
-    $x64Folder = ${Env:ProgramFiles(x86)} + '\Microsoft\Edge'
-    $x86Folder = ${Env:ProgramFiles} + '\Microsoft\Edge'
-    $global:EdgeFolder = $null
-
-    if (Test-Path -Path $x86Folder) 
-    {
-        $global:EdgeFolder = ${Env:ProgramFiles} + '\Microsoft\'
-        "x86 Path does exist, continuing. (" + $EdgeFolder + ")"
-        $gotDirectory = "true"
-
-    } 
-        elseif (Test-Path -Path $x64Folder)
-        {
-            $global:EdgeFolder = ${Env:ProgramFiles(x86)} + '\Microsoft\'
-            "x64 Path does exist, continuing. (" + $EdgeFolder + ")"
-            $gotDirectory = "true"
-        }
-            else
-            {
-                "Error finding Microsoft Edge directory. Please contact the developer."
-                pause
-                exit
-            }
-}
 
 # Creates a menu for the user to select the option they would like to use.
-
-$menumessage = " `
-What would you like to do? `
-Press f to disable the IEtoEdge BHO, turning off Edge redirection. `
-Prees o to enable the IEtoEdge BHO, enabling Edge redirection. `
-Press r to remove any BHO files. (Note: Once files are removed, changes cannot be reverted.) `
-Press e to exit. `
-Enter here"
 
 function menu()
 {
 
-    switch ((Read-Host -Prompt $menumessage).Substring(0,1))
+    Write-Host ""
+    Write-Host "What would you like to do?" 
+
+    Write-Host "Press f to" -NoNewline
+    Write-Host " disable " -NoNewLine -ForegroundColor Red
+    Write-Host "the IEtoEdge BHO, turning off Edge redirection."
+
+    Write-Host "Press o to" -NoNewline
+    Write-Host " enable " -NoNewLine -ForegroundColor Green
+    Write-Host "the IEtoEdge BHO, enabling Edge redirection."
+
+    Write-Host "Press d to" -NoNewline
+    Write-Host " delete " -NoNewLine -ForegroundColor Green
+    Write-Host "the IEtoEdge BHO files (Note: Once files are deleted, " -NoNewline
+    Write-Host "changes cannot be reverted." -NoNewline -ForegroundColor Red
+    Write-Host ".)"
+
+    Write-Host ""
+    Write-Host "The Group Policy Edits have not been tested, may or may not work." -ForegroundColor Magenta
+
+    Write-Host "Press g to" -NoNewline
+    Write-Host " enable " -NoNewLine -ForegroundColor Red
+    Write-Host "Group Policies that should disable IEtoEdge BHO,"
+    Write-Host "disabling " -NoNewLine -ForegroundColor Red
+    Write-Host "Edge redirection."
+
+    Write-Host "Press i to" -NoNewline
+    Write-Host " enabling " -NoNewLine -ForegroundColor Green
+    Write-Host "Group Policies that should disable IEtoEdge BHO,"
+    Write-Host "enabling " -NoNewLine -ForegroundColor Green
+    Write-Host "Edge redirection."
+
+    Write-Host ""
+    Write-Host "Press e to exit."
+
+    switch ((Read-Host -Prompt "Enter here").Substring(0,1))
     {
         "f" 
         {
@@ -84,30 +82,95 @@ function menu()
             enableBHO
             ""
         }
-        "r"
+        "d"
         {
             ""
             deleteBHO
             ""
         }
+        "g"
+        {
+            ""
+            Write-Host "Would you like to enable Group Policies that disables IEtoEdgeBHO?"
+            if(agree("Press y to continue, press any other key to exit") -eq $true)
+            {
+                updateGPO(1)
+            }
+            else
+            {
+                "Exiting to menu."
+                menu
+            }
+            ""
+        }
+        "i"
+        {
+            ""
+            Write-Host "Would you like to disable Group Policies that disables IEtoEdgeBHO?"
+            if(agree("Press y to continue, press any other key to exit") -eq $true)
+            {
+                updateGPO(0)
+            }
+            else
+            {
+                "Exiting to menu."
+                menu
+            }
+            ""
+        }
         "e"
         {
             ""
-            "Exiting the program."
+            Write-Host "Exiting the program."
             exit
             $gotDirectory = "false"
             pause
         }
         default
         {
-            "Incorrect letter entered, returning to menu."
+            Write-Host "Incorrect letter entered, returning to menu."
             menu
         }
    }
 
 }
 
-if ($EdgeFolder -eq "null")
+###################################################################################################################################### 
+
+
+function getDirectory()
+{
+    # Checks to see where the "Edge" folder exists on the system, either in the "Program Files" folder,
+    # or the "Program Files (x86)" folder, then sets "EdgeFolder" to the parent directory.
+    ""
+    $x64Folder = ${Env:ProgramFiles(x86)} + '\Microsoft\Edge'
+    $x86Folder = ${Env:ProgramFiles} + '\Microsoft\Edge'
+    $global:EdgeFolder = $null
+
+    if (Test-Path -Path $x86Folder) 
+    {
+        $global:EdgeFolder = ${Env:ProgramFiles} + '\Microsoft\'
+        Write-Host ("x86 Path does exist, continuing. (" + $EdgeFolder + ")")
+        $gotDirectory = "true"
+
+    } 
+        elseif (Test-Path -Path $x64Folder)
+        {
+            $global:EdgeFolder = ${Env:ProgramFiles(x86)} + '\Microsoft\'
+            Write-Host ("x64 Path does exist, continuing. (" + $EdgeFolder + ")")
+            $gotDirectory = "true"
+        }
+            else
+            {
+                Write-Host "Error finding Microsoft Edge directory. Please contact the developer."
+                pause
+                exit
+            }
+}
+
+
+
+if ($EdgeFolder -eq $null)
 {
     exit
 }
@@ -130,29 +193,29 @@ function disableBHO()
     $filenameextensions = $FilestoRename | %{$_.name.substring($_.name.length -3)}
     $matchpattern = "bak"
     $matchingValues = $filenameextensions | Where { "$filenameextensions.GetValue($_)" -match $matchPattern }
-    if($filenameextensions.Count -eq $matchingValues.Count -and $filenameextensions.Count -eq 0)
+    if($filenameextensions.Count -eq $matchingValues.Count -or $filenameextensions.Count -eq 0)
     {
-        "It looks like you have run this before or all files have been deleted, the script will not continue. `nGoing back to menu..."
+        Write-Host "It looks like you have run this before or all files have been deleted, the script will not continue. `nGoing back to menu..."
         pause
         menu
     }
         else
         {
-            "This portion of the script will rename these files, adding the "".bak"" extension to the end of the file."
+            Write-Host "This portion of the script will rename these files, adding the "".bak"" extension to the end of the file."
             $FilestoRename | %{$PSItem.Name + " -> " + ($PSItem.Name + ".bak")}                                              
             #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
             ""
             if (agree("Press y to continue renaming, press any other key to exit"))
             {
-                "Renaming files."
+                Write-Host "Renaming files."
                 $FilestoRename | Rename-Item -newname {($PSItem.Name +".bak")}
-                "Renamed all files, exiting to menu."
+                Write-Host "Renamed all files, exiting to menu."
                 pause
                 menu
             }
             else
             {
-                "Exiting..."
+                Write-Host "Exiting..."
                 pause
                 menu
             }
@@ -175,19 +238,19 @@ function enableBHO()
     $matchingValues = $filenameextensions | Where { "$filenameextensions.GetValue($_)" -match $matchPattern }
     if($filenameextensions.Count -ne $matchingValues.Count -or $FilestoRename.Count -eq 0)
     {
-        "It looks like you have run this before or all files have been deleted, the script will not continue. `nGoing back to menu..."
+        Write-Host "It looks like you have run this before or all files have been deleted, the script will not continue. `nGoing back to menu..."
         pause
         menu
     }
         else
         {
-            "This portion of the script will rename these files, removing the "".bak"" extension at the end of the file."
+            Write-Host "This portion of the script will rename these files, removing the "".bak"" extension at the end of the file."
             $FilestoRename | %{$PSItem.Name + " -> " + ($_.name.substring(0,$_.name.length-4))}                                              
             #$FilestoRename | %{($PSItem.Name + ".bak")}                                    # outputs old file names
             ""
             if (agree("Press y to continue renaming, press any other key to exit"))
             {
-                "Renaming files."
+                Write-Host "Renaming files."
                 $FilestoRename | Rename-Item -newname {$_.name.substring(0,$_.name.length-4)}
                 "Renamed all files, exiting to menu."
                 pause
@@ -195,7 +258,7 @@ function enableBHO()
             }
             else
             {
-                "Exiting..."
+                Write-Host "Exiting..."
                 pause
                 menu
             }
@@ -215,22 +278,22 @@ function deleteBHO()
     $FilestoDelete = findfiles
     if($FilestoDelete.Count -eq 0)
     {
-        "There are no BHO related files. Going back to menu..."
+        Write-Host "There are no BHO related files. Going back to menu..."
         pause
         menu
     }
         else
         {
-            "This portion of the script will delete these files. There's no going back."
+            Write-Host "This portion of the script will delete these files. There's no going back."
             $FilestoDelete | %{$_.FullName}                                          
             ""
             if (agree("Press y to continue deletion, press any other key to exit"))
             {
                 if(agree("Are you sure? You cannot revert this. Press y again to confirm, press any other key to exit."))
                 {
-                "Deleting files."
+                Write-Host "Deleting files."
                 $FilestoDelete | Remove-Item
-                "Deleting all files, exiting to menu."
+                Write-Host "Deleting all files, exiting to menu."
                 menu
                 }
                 else
@@ -249,6 +312,40 @@ function deleteBHO()
             break
         }
 }
+
+
+###################################################################################################################################### 
+# Group Policy Code
+
+# function taken from: https://devblogs.microsoft.com/scripting/update-or-add-registry-key-value-with-powershell/
+function updateRegistry($registryPath, $name, $value)
+{
+    if(!(Test-Path $registryPath))
+    {
+        New-Item -Path $registryPath -Force | Out-Null
+        New-ItemProperty -Path $registryPath -Name $name -Value $value `
+        -PropertyType DWORD -Force | Out-Null
+    }
+        else
+        {
+        New-ItemProperty -Path $registryPath -Name $name -Value $value `
+        -PropertyType DWORD -Force | Out-Null
+        }
+}
+
+
+function updateGPO($num)
+{
+    updateRegistry "HKLM:\Software\Policies\Microsoft\Edge" "RedirectSitesFromInternetExplorerPreventBHOInstall" $num
+    # https://admx.help/?Category=EdgeChromium&Policy=Microsoft.Policies.Edge::RedirectSitesFromInternetExplorerPreventBHOInstall
+    updateRegistry "HKLM:\Software\Policies\Microsoft\Edge" "RedirectSitesFromInternetExplorerRedirectMode" $num
+    # https://admx.help/?Category=EdgeChromium&Policy=Microsoft.Policies.Edge::RedirectSitesFromInternetExplorerRedirectMode
+    Write-Host "Done, exiting to menu."
+    menu
+}
+
+
+###################################################################################################################################### 
 
 
 function agree($agreemessage)
@@ -273,17 +370,17 @@ function agree($agreemessage)
     }
 }
 
+###################################################################################################################################### 
 
+Write-Host "Disabling Edge from Opening when Internet Explorer tries to Open"
+Write-Host "by hihi217"
 ""
-"Disabling Edge from Opening when Internet Explorer tries to Open"
-"by hihi217"
-""
-"THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
+Write-Host "THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE 
 WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
 HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."
 ""
-"This script will rename any files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO),
+Write-Host "This script will rename any files related to Microsoft Edge's Internet Explorer Browser Helper Object (BHO),
 either or enabling disabling Internet Explorer redirects to Edge, 
 allowing a user to use Internet Explorer for certain websites."
 ""
